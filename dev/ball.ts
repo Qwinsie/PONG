@@ -5,8 +5,8 @@ class Ball {
     private _x : number = 0
     private _y : number = 0
 
-    private xspeed : number = -1
-    private yspeed : number = -1
+    private xspeed : number = 1
+    private yspeed : number = 1
 
     public hit : boolean = false
 

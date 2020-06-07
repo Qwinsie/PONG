@@ -3,8 +3,8 @@ var Ball = (function () {
     function Ball() {
         this._x = 0;
         this._y = 0;
-        this.xspeed = -1;
-        this.yspeed = -1;
+        this.xspeed = 1;
+        this.yspeed = 1;
         this.hit = false;
         this.div = document.createElement("ball");
         var game = document.getElementsByTagName("game")[0];
@@ -87,8 +87,8 @@ var Paddle = (function () {
         this.div = document.createElement("paddle");
         var game = document.getElementsByTagName("game")[0];
         game.appendChild(this.div);
-        this._x = 0;
-        this._y = 0;
+        this._x = -35;
+        this._y = 20;
         this.upkey = 87;
         this.downkey = 83;
         window.addEventListener("keydown", function (e) { return _this.onKeyDown(e); });
@@ -122,7 +122,7 @@ var Paddle = (function () {
         var newY = this._y - this.upspeed + this.downspeed;
         if (newY > 0 && newY + 100 < window.innerHeight)
             this._y = newY;
-        this.div.style.transform = "translate(" + this._x + "px, " + this._y + "px)";
+        this.div.style.transform = "translate(" + this._x + "px, " + this._y + "px) scaleX(" + 0.4 + ") scaleY(" + 0.7 + ")";
     };
     return Paddle;
 }());

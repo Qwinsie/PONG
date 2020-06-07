@@ -18,8 +18,8 @@ class Paddle {
         let game = document.getElementsByTagName("game")[0]
         game.appendChild(this.div)
 
-        this._x = 0
-        this._y = 0
+        this._x = -35
+        this._y = 20
 
         this.upkey   = 87
         this.downkey = 83
@@ -63,6 +63,6 @@ class Paddle {
 
         if (newY > 0 && newY + 100 < window.innerHeight) this._y = newY
 
-        this.div.style.transform = `translate(${this._x}px, ${this._y}px)`
+        this.div.style.transform = `translate(${this._x}px, ${this._y}px) scaleX(${0.4}) scaleY(${0.7})`
     }
 }
