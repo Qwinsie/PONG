@@ -53,6 +53,10 @@ class Paddle {
         }
     }
 
+    public getRectangle() {
+        return this.div.getBoundingClientRect()
+    }
+
     public update() {
         let newY = this._y - this.upspeed + this.downspeed
 

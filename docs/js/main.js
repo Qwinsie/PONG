@@ -3,17 +3,31 @@ var Ball = (function () {
     function Ball() {
         this._x = 0;
         this._y = 0;
-        this.xspeed = 1;
-        this.yspeed = 1;
+        this.xspeed = -1;
+        this.yspeed = -1;
+        this.hit = false;
         this.div = document.createElement("ball");
         var game = document.getElementsByTagName("game")[0];
         game.appendChild(this.div);
         this._x = Math.random() * (window.innerWidth - this.div.clientWidth);
         this._y = Math.random() * (window.innerHeight - this.div.clientHeight);
     }
+    Ball.prototype.getRectangle = function () {
+        return this.div.getBoundingClientRect();
+    };
+    Ball.prototype.getFutureRectangle = function () {
+        var rect = this.div.getBoundingClientRect();
+        rect.x += this.xspeed;
+        return rect;
+    };
     Ball.prototype.update = function () {
         this._x += this.xspeed;
         this._y += this.yspeed;
+        if (this.hit) {
+            this.xspeed *= -1;
+            this.xspeed += 1;
+            this.hit = false;
+        }
         if (this._y > window.innerHeight - this.div.clientHeight || this._y < 0) {
             this.yspeed *= -1;
         }
@@ -27,17 +41,35 @@ var Ball = (function () {
 var Game = (function () {
     function Game() {
         this.balls = [];
+        this.hit = false;
+        this.score = 0;
         this.balls.push(new Ball());
         this.paddle = new Paddle();
         this.gameLoop();
     }
+    Game.prototype.checkCollision = function (a, b) {
+        return (a.left <= b.right &&
+            b.left <= a.right &&
+            a.top <= b.bottom &&
+            b.top <= a.bottom);
+    };
     Game.prototype.gameLoop = function () {
         var _this = this;
         for (var _i = 0, _a = this.balls; _i < _a.length; _i++) {
             var ball = _a[_i];
             ball.update();
         }
+        this.hit = this.checkCollision(this.balls[0].getFutureRectangle(), this.paddle.getRectangle());
         this.paddle.update();
+        if (this.hit) {
+            this.score += 1;
+            var scorediv = document.getElementsByTagName("score")[0];
+            scorediv.innerHTML = "Score: " + this.score;
+            var game = document.getElementsByTagName("game")[0];
+            game.appendChild(scorediv);
+            console.log("ball hits paddle");
+            this.balls[0].hit = true;
+        }
         requestAnimationFrame(function () { return _this.gameLoop(); });
     };
     return Game;
@@ -82,6 +114,9 @@ var Paddle = (function () {
                 this.downspeed = 0;
                 break;
         }
+    };
+    Paddle.prototype.getRectangle = function () {
+        return this.div.getBoundingClientRect();
     };
     Paddle.prototype.update = function () {
         var newY = this._y - this.upspeed + this.downspeed;
