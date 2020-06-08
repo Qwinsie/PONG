@@ -1,68 +1,60 @@
-class Paddle {
+/// <reference path="gameobject.ts"/>
 
-    private div : HTMLElement
+class Paddle extends GameObject {
+    
+    private downkey : number = 0
+    private upkey : number = 0
+    
+    private downSpeed : number = 0
+    private upSpeed : number = 0
+    
+    constructor(up:number, down:number, player:number) {
+        super("paddle")
+        
+        this.upkey   = up
+        this.downkey = down
+        
+        this.y = 200
 
-    private _x : number = 0
-    private _y : number = 0
-
-    private upspeed : number = 0
-    private downspeed : number = 0
-
-    // Keys
-    private downkey: number = 87
-    private upkey: number = 83
-
-    constructor() {
-        this.div = document.createElement("paddle")
-
-        let game = document.getElementsByTagName("game")[0]
-        game.appendChild(this.div)
-
-        this._x = -35
-        this._y = 20
-
-        this.upkey   = 87
-        this.downkey = 83
-
+        if(player == 1) {
+            this.x = 20
+        } else if (player == 2) {
+            this.x = window.innerWidth - this.div.clientWidth
+        }
+        
         window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e))
         window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e))
     }
 
-    private onKeyDown(e:KeyboardEvent): void {
-
-        console.log(e.keyCode)
-
+    private onKeyDown(e: KeyboardEvent): void {
         switch (e.keyCode) {
             case this.upkey:
-                this.upspeed = 5
-                break;
+                this.upSpeed = 5
+                break
             case this.downkey:
-                this.downspeed = 5
-                break;
+                this.downSpeed = 5
+                break
         }
     }
 
-    private onKeyUp(e:KeyboardEvent): void {
+    private onKeyUp(e: KeyboardEvent): void {
         switch (e.keyCode) {
             case this.upkey:
-                this.upspeed = 0
-                break;
+                this.upSpeed = 0
+                break
             case this.downkey:
-                this.downspeed = 0
-                break;
+                this.downSpeed = 0
+                break
         }
-    }
-
-    public getRectangle() {
-        return this.div.getBoundingClientRect()
     }
 
     public update() {
-        let newY = this._y - this.upspeed + this.downspeed
+        let newY = this.y - this.upSpeed + this.downSpeed
 
+        // If paddle is inside view -> update
+        if (newY > 0 && newY + this.div.clientHeight < window.innerHeight ) this.y = newY
 
-        if (newY > 0 && newY + 100 < window.innerHeight) this._y = newY
-
-        this.div.style.transform = `translate(${this._x}px, ${this._y}px) scaleX(${0.4}) scaleY(${0.7})`
+        this.div.style.transform = `translate(${this.x}px, ${this.y}px) scaleX(0.6) scaleY(0.6)`
     }
+    
 }

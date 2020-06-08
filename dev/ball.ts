@@ -1,53 +1,48 @@
-class Ball {
+/// <reference path="gameobject.ts"/>
 
-    private div : HTMLElement
+class Ball extends GameObject{
+    
+    private speedX: number = 0
+    private speedY: number = 0
+    private speedR: number = 0
 
-    private _x : number = 0
-    private _y : number = 0
-
-    private xspeed : number = 1
-    private yspeed : number = 1
-
-    public hit : boolean = false
-
+    private r: number = 0
+    
     constructor() {
-        this.div = document.createElement("ball")
+        super("ball")
+        
+        this.x = window.innerWidth/2
+        this.y = Math.random() * (window.innerHeight - 100)
 
-        let game = document.getElementsByTagName("game")[0]
-        game.appendChild(this.div)
-
-        this._x = Math.random() * (window.innerWidth - this.div.clientWidth)
-        this._y = Math.random() * (window.innerHeight - this.div.clientHeight)
-    }
-
-    public getRectangle() {
-        return this.div.getBoundingClientRect()
+        this.speedX = - (Math.random() * 6)
+        this.speedY = Math.random() * 6 - 3
+        this.speedR = 0.001
     }
     
+    public hitPaddle(){
+        this.speedX *= -1
+        console.log(this.speedX)
+    }
+
+    public removeBall(){
+        this.div.remove()
+    }
+
     public getFutureRectangle(){
         let rect = this.div.getBoundingClientRect()
-        rect.x += this.xspeed
+        rect.x += this.speedX
         return rect
     }
 
-    public update() {
-        this._x += this.xspeed
-        this._y += this.yspeed
-
-        if(this.hit) {
-            this.xspeed *= -1
-            this.xspeed += 1
-            this.hit = false
+    public update() : void {
+        this.x += this.speedX
+        this.y += this.speedY
+        this.r += this.speedR
+        
+        if( this.y + this.div.clientHeight > window.innerHeight || this.y < 0) { 
+            this.speedY *= -1
         }
-
-        if(this._y > window.innerHeight - this.div.clientHeight || this._y < 0) {
-        this.yspeed *= -1
-        }
-
-        if(this._x > window.innerWidth - this.div.clientWidth) {
-        this.xspeed *= -1
-        }
-
-        this.div.style.transform = `translate(${this._x}px, ${this._y}px)`
+            
+        this.div.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.r}turn)` 
     }
 }
