@@ -14,13 +14,16 @@ class Paddle extends GameObject {
         this.upkey   = up
         this.downkey = down
         
-        this.y = 200
+        this.y = (0.5 * window.innerHeight) - (0.5 * this.height)
 
         if(player == 1) {
-            this.x = 20
+            this.x = -33
         } else if (player == 2) {
-            this.x = window.innerWidth - this.div.clientWidth
+            this.x = (window.innerWidth - this.width) + 33
         }
+        
+        this.scaleX = 0.5
+        this.scaleY = 0.5
         
         window.addEventListener("keydown", (e: KeyboardEvent) => this.onKeyDown(e))
         window.addEventListener("keyup", (e: KeyboardEvent) => this.onKeyUp(e))
@@ -48,13 +51,16 @@ class Paddle extends GameObject {
         }
     }
 
+    public paddleGrow() {
+        this.scaleY = 1
+    }
+
     public update() {
         let newY = this.y - this.upSpeed + this.downSpeed
 
         // If paddle is inside view -> update
-        if (newY > 0 && newY + this.div.clientHeight < window.innerHeight ) this.y = newY
-
-        this.div.style.transform = `translate(${this.x}px, ${this.y}px) scaleX(0.6) scaleY(0.6)`
+        if (newY > (0 - 70) && newY + this.height < window.innerHeight - 60 ) this.y = newY
+        
+        super.update()
     }
-    
 }

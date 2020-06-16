@@ -1,58 +1,66 @@
 class Game {
     
-    private balls: Ball[] = []
+    private gameobjects : GameObject[] = []
 
-    private paddle1: Paddle
-    private paddle2: Paddle
-
-    private score1: number = 0
-    private score2: number = 0
+    private score1 : number = 0
+    private score2 : number = 0
 
     constructor() {
-        for (let i = 0; i < 1; i++) {
-            this.balls.push(new Ball())
-        }
 
-        this.paddle1 = new Paddle(87, 83, 1)
-        this.paddle2 = new Paddle(38, 40, 2)
+        this.gameobjects.push(new Paddle(87, 83, 1))
+        this.gameobjects.push(new Paddle(38, 40, 2))
+        this.gameobjects.push(new PaddleUpgrade())
+
+        for (let i = 0; i < 1; i++) {
+            this.gameobjects.push(new Ball(1))
+        }
 
         this.update()        
     }
 
     private update(): void {
-        for (let b of this.balls) {
+        for (const ball of this.gameobjects) {
+            // ball = gameobjects
+            ball.update()
 
-            // ball hits left paddle
-            if (this.checkCollision(b.getFutureRectangle(), this.paddle1.getRectangle())) {
-                b.hitPaddle()
-            }
-
-            // ball hits right paddle
-            if (this.checkCollision(b.getFutureRectangle(), this.paddle2.getRectangle())) {
-                b.hitPaddle()
-            }
-
-            // ball is outside screen rightside
-            if (b.getRectangle().left > innerWidth) {
-                this.addScore(1)
-                this.updateScore()
-                b.removeBall()
-                this.reset()
-            }
-
-            // ball is outside screen leftside
-            if (b.getRectangle().right < 0) {
-                this.addScore(2)
-                this.updateScore()
-                b.removeBall()
-                this.reset()
-            }
             
-            b.update()
-        }
+            if(ball instanceof Ball) {
+                
+                // ball is outside screen rightside
+                if (ball.getRectangle().left > innerWidth) {
+                    ball.setToStartPos(-1)
+                    this.addScore(1)
+                    this.updateScore()
+                }
+                
+                // ball is outside screen leftside
+                if (ball.getRectangle().right < 0) {
+                    ball.setToStartPos(1)
+                    this.addScore(2)
+                    this.updateScore()
+                }
+                
+                // gameobject == Paddle
+                // check if paddle hits a ball object
+                for (const paddle of this.gameobjects) {
+                    if(paddle instanceof Paddle) {
+                        if (this.checkCollision(ball.getFutureRectangle(), paddle.getRectangle())) {
+                            ball.hitPaddle()
+                        }
+                        for (const paddleupgrade of this.gameobjects) {
+                            if(paddleupgrade instanceof PaddleUpgrade) {
+                                if (this.checkCollision(ball.getFutureRectangle(), paddleupgrade.getRectangle())) {
+                                    paddleupgrade.hitByBall()
+                                    paddle.paddleGrow()
+                                }
+                            }
+                        }
+                    }
 
-        this.paddle1.update()
-        this.paddle2.update()
+                }
+
+            }
+        }
 
         requestAnimationFrame(() => this.update())
     }
@@ -69,11 +77,6 @@ class Game {
             let scorediv = document.getElementsByTagName("splash")[0]
             scorediv.innerHTML = `${this.score1}:${this.score2}`
             document.body.appendChild(scorediv)
-    }
-
-    private reset() {
-        this.balls.splice(0, 1)
-        this.balls.push(new Ball())
     }
 
     private checkCollision(a: ClientRect, b: ClientRect) {

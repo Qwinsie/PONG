@@ -14,8 +14,27 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var GameObject = (function () {
     function GameObject(name) {
+        this.x = 0;
+        this.y = 0;
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.rotation = 0;
         this.spawnObject(name);
     }
+    Object.defineProperty(GameObject.prototype, "width", {
+        get: function () {
+            return this.div.clientWidth * this.scaleX;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(GameObject.prototype, "height", {
+        get: function () {
+            return this.div.clientHeight * this.scaleY;
+        },
+        enumerable: true,
+        configurable: true
+    });
     GameObject.prototype.spawnObject = function (name) {
         this.div = document.createElement("" + name);
         document.body.appendChild(this.div);
@@ -24,31 +43,30 @@ var GameObject = (function () {
         return this.div.getBoundingClientRect();
     };
     GameObject.prototype.update = function () {
-        console.log("Gameobject is updating");
+        this.div.style.transform = "translate(" + this.x + "px, " + this.y + "px) scaleX(" + this.scaleX + ") scaleY(" + this.scaleY + ") rotate(" + this.rotation + "turn)";
     };
     return GameObject;
 }());
 var Ball = (function (_super) {
     __extends(Ball, _super);
-    function Ball() {
+    function Ball(direction) {
         var _this = _super.call(this, "ball") || this;
         _this.speedX = 0;
         _this.speedY = 0;
         _this.speedR = 0;
-        _this.r = 0;
-        _this.x = window.innerWidth / 2;
-        _this.y = Math.random() * (window.innerHeight - 100);
-        _this.speedX = -(Math.random() * 6);
-        _this.speedY = Math.random() * 6 - 3;
-        _this.speedR = 0.001;
+        _this.setToStartPos(direction);
         return _this;
     }
+    Ball.prototype.setToStartPos = function (direction) {
+        this.x = window.innerWidth / 2;
+        this.y = Math.random() * (window.innerHeight - 100);
+        this.speedX = direction * (Math.random() * 6);
+        this.speedY = Math.random() * 6;
+        this.speedR = 0.001;
+    };
     Ball.prototype.hitPaddle = function () {
         this.speedX *= -1;
-        console.log(this.speedX);
-    };
-    Ball.prototype.removeBall = function () {
-        this.div.remove();
+        this.goFaster();
     };
     Ball.prototype.getFutureRectangle = function () {
         var rect = this.div.getBoundingClientRect();
@@ -58,52 +76,66 @@ var Ball = (function (_super) {
     Ball.prototype.update = function () {
         this.x += this.speedX;
         this.y += this.speedY;
-        this.r += this.speedR;
+        this.rotation += this.speedR;
         if (this.y + this.div.clientHeight > window.innerHeight || this.y < 0) {
             this.speedY *= -1;
         }
-        this.div.style.transform = "translate(" + this.x + "px, " + this.y + "px) rotate(" + this.r + "turn)";
+        _super.prototype.update.call(this);
+    };
+    Ball.prototype.goFaster = function () {
+        this.speedX *= 1.2;
+        this.speedY *= 1.2;
     };
     return Ball;
 }(GameObject));
 var Game = (function () {
     function Game() {
-        this.balls = [];
+        this.gameobjects = [];
         this.score1 = 0;
         this.score2 = 0;
+        this.gameobjects.push(new Paddle(87, 83, 1));
+        this.gameobjects.push(new Paddle(38, 40, 2));
+        this.gameobjects.push(new PaddleUpgrade());
         for (var i = 0; i < 1; i++) {
-            this.balls.push(new Ball());
+            this.gameobjects.push(new Ball(1));
         }
-        this.paddle1 = new Paddle(87, 83, 1);
-        this.paddle2 = new Paddle(38, 40, 2);
         this.update();
     }
     Game.prototype.update = function () {
         var _this = this;
-        for (var _i = 0, _a = this.balls; _i < _a.length; _i++) {
-            var b = _a[_i];
-            if (this.checkCollision(b.getFutureRectangle(), this.paddle1.getRectangle())) {
-                b.hitPaddle();
+        for (var _i = 0, _a = this.gameobjects; _i < _a.length; _i++) {
+            var ball = _a[_i];
+            ball.update();
+            if (ball instanceof Ball) {
+                if (ball.getRectangle().left > innerWidth) {
+                    ball.setToStartPos(-1);
+                    this.addScore(1);
+                    this.updateScore();
+                }
+                if (ball.getRectangle().right < 0) {
+                    ball.setToStartPos(1);
+                    this.addScore(2);
+                    this.updateScore();
+                }
+                for (var _b = 0, _c = this.gameobjects; _b < _c.length; _b++) {
+                    var paddle = _c[_b];
+                    if (paddle instanceof Paddle) {
+                        if (this.checkCollision(ball.getFutureRectangle(), paddle.getRectangle())) {
+                            ball.hitPaddle();
+                        }
+                        for (var _d = 0, _e = this.gameobjects; _d < _e.length; _d++) {
+                            var paddleupgrade = _e[_d];
+                            if (paddleupgrade instanceof PaddleUpgrade) {
+                                if (this.checkCollision(ball.getFutureRectangle(), paddleupgrade.getRectangle())) {
+                                    paddleupgrade.hitByBall();
+                                    paddle.paddleGrow();
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            if (this.checkCollision(b.getFutureRectangle(), this.paddle2.getRectangle())) {
-                b.hitPaddle();
-            }
-            if (b.getRectangle().left > innerWidth) {
-                this.addScore(1);
-                this.updateScore();
-                b.removeBall();
-                this.reset();
-            }
-            if (b.getRectangle().right < 0) {
-                this.addScore(2);
-                this.updateScore();
-                b.removeBall();
-                this.reset();
-            }
-            b.update();
         }
-        this.paddle1.update();
-        this.paddle2.update();
         requestAnimationFrame(function () { return _this.update(); });
     };
     Game.prototype.addScore = function (player) {
@@ -118,10 +150,6 @@ var Game = (function () {
         var scorediv = document.getElementsByTagName("splash")[0];
         scorediv.innerHTML = this.score1 + ":" + this.score2;
         document.body.appendChild(scorediv);
-    };
-    Game.prototype.reset = function () {
-        this.balls.splice(0, 1);
-        this.balls.push(new Ball());
     };
     Game.prototype.checkCollision = function (a, b) {
         return (a.left <= b.right &&
@@ -142,13 +170,15 @@ var Paddle = (function (_super) {
         _this.upSpeed = 0;
         _this.upkey = up;
         _this.downkey = down;
-        _this.y = 200;
+        _this.y = (0.5 * window.innerHeight) - (0.5 * _this.height);
         if (player == 1) {
-            _this.x = 20;
+            _this.x = -33;
         }
         else if (player == 2) {
-            _this.x = window.innerWidth - _this.div.clientWidth;
+            _this.x = (window.innerWidth - _this.width) + 33;
         }
+        _this.scaleX = 0.5;
+        _this.scaleY = 0.5;
         window.addEventListener("keydown", function (e) { return _this.onKeyDown(e); });
         window.addEventListener("keyup", function (e) { return _this.onKeyUp(e); });
         return _this;
@@ -173,12 +203,29 @@ var Paddle = (function (_super) {
                 break;
         }
     };
+    Paddle.prototype.paddleGrow = function () {
+        this.scaleY = 1;
+    };
     Paddle.prototype.update = function () {
         var newY = this.y - this.upSpeed + this.downSpeed;
-        if (newY > 0 && newY + this.div.clientHeight < window.innerHeight)
+        if (newY > (0 - 70) && newY + this.height < window.innerHeight - 60)
             this.y = newY;
-        this.div.style.transform = "translate(" + this.x + "px, " + this.y + "px) scaleX(0.6) scaleY(0.6)";
+        _super.prototype.update.call(this);
     };
     return Paddle;
+}(GameObject));
+var PaddleUpgrade = (function (_super) {
+    __extends(PaddleUpgrade, _super);
+    function PaddleUpgrade() {
+        var _this = _super.call(this, "paddleupgrade") || this;
+        _this.x = 600;
+        _this.y = 600;
+        return _this;
+    }
+    PaddleUpgrade.prototype.hitByBall = function () {
+    };
+    PaddleUpgrade.prototype.update = function () {
+    };
+    return PaddleUpgrade;
 }(GameObject));
 //# sourceMappingURL=main.js.map

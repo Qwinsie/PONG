@@ -1,31 +1,29 @@
 /// <reference path="gameobject.ts"/>
 
 class Ball extends GameObject{
-    
+    // Fields
     private speedX: number = 0
     private speedY: number = 0
     private speedR: number = 0
-
-    private r: number = 0
     
-    constructor() {
+    constructor(direction : number) {
         super("ball")
-        
+        this.setToStartPos(direction)
+    }
+    
+    public setToStartPos(direction : number) {
         this.x = window.innerWidth/2
         this.y = Math.random() * (window.innerHeight - 100)
 
-        this.speedX = - (Math.random() * 6)
-        this.speedY = Math.random() * 6 - 3
+        // let randomInt = Math.round(Math.random()) == 0 ? -1 : 1
+        this.speedX = direction * (Math.random() * 6)
+        this.speedY = Math.random() * 6
         this.speedR = 0.001
     }
-    
+
     public hitPaddle(){
         this.speedX *= -1
-        console.log(this.speedX)
-    }
-
-    public removeBall(){
-        this.div.remove()
+        this.goFaster()
     }
 
     public getFutureRectangle(){
@@ -35,14 +33,20 @@ class Ball extends GameObject{
     }
 
     public update() : void {
+        
         this.x += this.speedX
         this.y += this.speedY
-        this.r += this.speedR
+        this.rotation += this.speedR
         
         if( this.y + this.div.clientHeight > window.innerHeight || this.y < 0) { 
             this.speedY *= -1
         }
-            
-        this.div.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.r}turn)` 
+
+        super.update()
+        }
+
+    public goFaster() {
+        this.speedX *= 1.2
+        this.speedY *= 1.2
     }
 }
